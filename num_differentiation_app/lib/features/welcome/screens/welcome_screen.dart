@@ -24,6 +24,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               child: SvgPicture.asset(
                 'assets/circle_welcome.svg',
                 width: UtilScreen().getWidth(context) * 0.4,
+                height: UtilScreen().getHeight(context) * 0.2,
               ),
             ),
             Text("Welcome to "),
