@@ -27,9 +27,36 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                 height: UtilScreen().getHeight(context) * 0.2,
               ),
             ),
-            Text("Welcome to "),
-            Text("Numerical"),
-            Text("Differentiation App"),
+            Container(
+              width: UtilScreen().getWidth(context),
+              margin: EdgeInsets.symmetric(horizontal: 40),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Welcome to ",
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall!
+                        .copyWith(fontSize: 35),
+                  ),
+                  Text(
+                    "Numerical",
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall!
+                        .copyWith(fontSize: 30, fontWeight: FontWeight.w300),
+                  ),
+                  Text(
+                    "Differentiation App",
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineSmall!
+                        .copyWith(fontSize: 25, fontWeight: FontWeight.w300),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(
               height: UtilScreen().getHeight(context) * 0.02,
             ),
@@ -44,18 +71,39 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Container(
                 width: UtilScreen().getWidth(context) * 0.8,
                 child: Text(
-                    "Get ready to compute derivatives with ease. Let's dive in!")),
+                  "Get ready to compute derivatives with ease. Let's dive in!",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall!
+                      .copyWith(fontSize: 18, fontWeight: FontWeight.w300),
+                )),
             Spacer(),
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: ((context) => ComputationScreen())));
-                },
-                child: Text("GET STARTED")),
+            Container(
+              height: 50,
+              width: UtilScreen().getWidth(context),
+              margin: EdgeInsets.symmetric(horizontal: 40),
+              child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                      backgroundColor: AppColors().appGreenThree),
+                  onPressed: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: ((context) => ComputationScreen())));
+                  },
+                  child: Text(
+                    "GET STARTED",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge!
+                        .copyWith(color: Colors.white),
+                  )),
+            ),
             SizedBox(
-              height: UtilScreen().getHeight(context) * 0.1,
+              height: UtilScreen().getHeight(context) * 0.05,
             )
           ],
         ),

@@ -11,8 +11,11 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
         textTheme: TextTheme(
-            headlineSmall: GoogleFonts.museoModerno()
-                .copyWith(fontWeight: FontWeight.bold)),
+          headlineSmall:
+              GoogleFonts.museoModerno().copyWith(fontWeight: FontWeight.bold),
+          bodyLarge:
+              GoogleFonts.museoModerno().copyWith(fontWeight: FontWeight.bold),
+        ),
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:num_differentiation_app/app/constants/app_colors.dart';
+import 'package:num_differentiation_app/app/shared/widgets/custom_dialog.dart';
 import 'package:num_differentiation_app/app/util/util_screen.dart';
 
 class ComputationScreen extends StatefulWidget {
@@ -16,8 +17,22 @@ class _ComputationScreenState extends State<ComputationScreen> {
   TextEditingController pointController = TextEditingController();
   TextEditingController stepSizeController = TextEditingController();
   String result = '';
+  double forwardDifference = 0;
+  double backwardDifference = 0;
+  double centralDifference = 0;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  void restartComputation() {
+    setState(() {
+      forwardDifference = 0;
+      backwardDifference = 0;
+      centralDifference = 0;
+      functionController.clear();
+      pointController.clear();
+      stepSizeController.clear();
+    });
+  }
 
   void computeDerivatives() {
     String function = functionController.text;
@@ -30,26 +45,44 @@ class _ComputationScreenState extends State<ComputationScreen> {
       });
       return;
     }
+    try {
+      setState(() {
+        Parser parser = Parser();
 
-    Parser parser = Parser();
-    Expression expression = parser.parse(function);
+        Expression expression = parser.parse(function);
 
-    // Create a context to hold the variable values
-    ContextModel context = ContextModel();
-    context.bindVariable(Variable('x'), Number(point));
-    setState(() {
-      double forwardDifference =
-          computeForwardDifference(expression, point, stepSize);
-      double backwardDifference =
-          computeBackwardDifference(expression, point, stepSize);
-      double centralDifference =
-          computeCentralDifference(expression, point, stepSize);
+        // Create a context to hold the variable values
+        ContextModel context = ContextModel();
+        context.bindVariable(Variable('x'), Number(point));
 
-      print("FORWARD: " + forwardDifference.toString());
+        forwardDifference =
+            computeForwardDifference(expression, point, stepSize);
+        backwardDifference =
+            computeBackwardDifference(expression, point, stepSize);
+        centralDifference =
+            computeCentralDifference(expression, point, stepSize);
 
-      result =
-          'Forward difference: $forwardDifference\nBackward difference: $backwardDifference\nCentral difference: $centralDifference';
-    });
+        result =
+            'Forward difference: $forwardDifference\nBackward difference: $backwardDifference\nCentral difference: $centralDifference';
+      });
+    } on FormatException catch (e) {
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Make sure the function is correct"),
+              content:
+                  Text("Example of valid expression : 2x^3 - 5x^2 + 3x + 1"),
+              actions: [
+                ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text("OK"))
+              ],
+            );
+          });
+    }
   }
 
   @override
@@ -76,11 +109,21 @@ class _ComputationScreenState extends State<ComputationScreen> {
                         width: UtilScreen().getWidth(context) * 0.1,
                       )),
                       Spacer(),
-                      Container(
-                          child: SvgPicture.asset(
-                        'assets/question_icon.svg',
-                        width: UtilScreen().getWidth(context) * 0.1,
-                      )),
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return MyDialog();
+                            },
+                          );
+                        },
+                        child: Container(
+                            child: SvgPicture.asset(
+                          'assets/question_icon.svg',
+                          width: UtilScreen().getWidth(context) * 0.1,
+                        )),
+                      ),
                       SizedBox(
                         width: UtilScreen().getWidth(context) * 0.08,
                       ),
@@ -90,13 +133,16 @@ class _ComputationScreenState extends State<ComputationScreen> {
                 SizedBox(
                   height: UtilScreen().getHeight(context) * 0.03,
                 ),
-                Container(
-                  margin: EdgeInsets.only(
-                      right: UtilScreen().getWidth(context) * 0.08),
-                  alignment: Alignment.centerRight,
-                  child: Icon(
-                    Icons.refresh,
-                    size: 35,
+                GestureDetector(
+                  onTap: () => restartComputation(),
+                  child: Container(
+                    margin: EdgeInsets.only(
+                        right: UtilScreen().getWidth(context) * 0.08),
+                    alignment: Alignment.centerRight,
+                    child: Icon(
+                      Icons.refresh,
+                      size: 35,
+                    ),
                   ),
                 ),
                 Container(
@@ -111,15 +157,8 @@ class _ComputationScreenState extends State<ComputationScreen> {
                     )),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0),
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 2.0,
-                    ),
-                  ),
                   child: TextFormField(
+                    maxLength: 100,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Field cannot be empty';
@@ -128,7 +167,13 @@ class _ComputationScreenState extends State<ComputationScreen> {
                     },
                     controller: functionController,
                     decoration: InputDecoration(
-                      border: InputBorder.none,
+                      counter: SizedBox.shrink(),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: Colors.black,
+                            width: 2.0,
+                          )),
                       hintText: 'Enter text',
                       contentPadding: EdgeInsets.all(10.0),
                     ),
@@ -152,21 +197,28 @@ class _ComputationScreenState extends State<ComputationScreen> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0),
                     color: Colors.white,
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 2.0,
-                    ),
                   ),
                   child: TextFormField(
+                    maxLength: 100,
                     validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Field cannot be empty';
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a value for the x point';
                       }
-                      return null;
+                      double? point = double.tryParse(value);
+                      if (point == null) {
+                        return 'Invalid x point. Please enter a valid numeric value.';
+                      }
+                      return null; // Return null if the value is valid
                     },
                     controller: pointController,
                     decoration: InputDecoration(
-                      border: InputBorder.none,
+                      counter: SizedBox.shrink(),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: Colors.black,
+                            width: 2.0,
+                          )),
                       hintText: 'Enter text',
                       contentPadding: EdgeInsets.all(10.0),
                     ),
@@ -187,24 +239,27 @@ class _ComputationScreenState extends State<ComputationScreen> {
                     )),
                 Container(
                   margin: EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20.0),
-                    color: Colors.white,
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 2.0,
-                    ),
-                  ),
                   child: TextFormField(
+                    maxLength: 100,
                     validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Field cannot be empty';
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a value for the step size';
                       }
-                      return null;
+                      double? stepSize = double.tryParse(value);
+                      if (stepSize == null) {
+                        return 'Invalid step size. Please enter a valid numeric value.';
+                      }
+                      return null; // Return null if the value is valid
                     },
                     controller: stepSizeController,
                     decoration: InputDecoration(
-                      border: InputBorder.none,
+                      counter: SizedBox.shrink(),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                            color: Colors.black,
+                            width: 2.0,
+                          )),
                       hintText: 'Enter text',
                       contentPadding: EdgeInsets.all(10.0),
                     ),
@@ -213,7 +268,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                 Spacer(),
                 Container(
                   width: UtilScreen().getWidth(context),
-                  height: UtilScreen().getHeight(context) * 0.43,
+                  height: UtilScreen().getHeight(context) * 0.40,
                   decoration: BoxDecoration(
                       color: AppColors().appGreenTwo,
                       borderRadius: BorderRadius.only(
@@ -247,7 +302,16 @@ class _ComputationScreenState extends State<ComputationScreen> {
                                   .headlineSmall!
                                   .copyWith(fontSize: 18),
                             ),
-                            Text("234.22"),
+                            Text(
+                              forwardDifference!.toStringAsFixed(2),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(
+                                    fontSize: 18,
+                                    color: AppColors().appDarkTwo,
+                                  ),
+                            ),
                           ],
                         ),
                       ),
@@ -277,7 +341,13 @@ class _ComputationScreenState extends State<ComputationScreen> {
                                   .headlineSmall!
                                   .copyWith(fontSize: 18),
                             ),
-                            Text("234.22"),
+                            Text(
+                              centralDifference!.toStringAsFixed(2),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(fontSize: 18),
+                            ),
                           ],
                         ),
                       ),
@@ -307,7 +377,13 @@ class _ComputationScreenState extends State<ComputationScreen> {
                                   .headlineSmall!
                                   .copyWith(fontSize: 18),
                             ),
-                            Text("234.22"),
+                            Text(
+                              backwardDifference!.toStringAsFixed(2),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(fontSize: 18),
+                            ),
                           ],
                         ),
                       ),
@@ -326,6 +402,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                               if (_formKey.currentState!.validate()) {
                                 _formKey.currentState!.save();
                                 computeDerivatives();
+                                print("Working");
                               }
                             },
                             child: Text(
