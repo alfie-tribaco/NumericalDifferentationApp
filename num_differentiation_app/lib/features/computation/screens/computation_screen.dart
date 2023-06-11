@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
 
 class ComputationScreen extends StatefulWidget {
-  const ComputationScreen({super.key, required this.title});
-
-  final String title;
+  const ComputationScreen({super.key});
 
   @override
   State<ComputationScreen> createState() => _ComputationScreenState();
@@ -15,7 +13,6 @@ class _ComputationScreenState extends State<ComputationScreen> {
   TextEditingController pointController = TextEditingController();
   TextEditingController stepSizeController = TextEditingController();
   String result = '';
-  int _counter = 0;
 
   void computeDerivatives() {
     String function = functionController.text;
@@ -50,19 +47,9 @@ class _ComputationScreenState extends State<ComputationScreen> {
     });
   }
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
