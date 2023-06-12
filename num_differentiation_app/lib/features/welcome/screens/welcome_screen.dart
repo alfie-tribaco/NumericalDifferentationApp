@@ -29,7 +29,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
             Container(
               width: UtilScreen().getWidth(context),
-              margin: EdgeInsets.symmetric(horizontal: 40),
+              margin: const EdgeInsets.symmetric(horizontal: 40),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -60,7 +60,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             SizedBox(
               height: UtilScreen().getHeight(context) * 0.02,
             ),
-            Container(
+            SizedBox(
               height: UtilScreen().getHeight(context) * 0.3,
               width: UtilScreen().getWidth(context) * 0.6,
               child: LottieBuilder.asset('assets/lottie_welcome.json'),
@@ -68,7 +68,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             SizedBox(
               height: UtilScreen().getHeight(context) * 0.05,
             ),
-            Container(
+            SizedBox(
                 width: UtilScreen().getWidth(context) * 0.8,
                 child: Text(
                   "Get ready to compute derivatives with ease. Let's dive in!",
@@ -78,11 +78,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       .headlineSmall!
                       .copyWith(fontSize: 18, fontWeight: FontWeight.w300),
                 )),
-            Spacer(),
+            const Spacer(),
             Container(
               height: 50,
               width: UtilScreen().getWidth(context),
-              margin: EdgeInsets.symmetric(horizontal: 40),
+              margin: const EdgeInsets.symmetric(horizontal: 40),
               child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -92,7 +92,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: ((context) => ComputationScreen())));
+                            builder: ((context) => const ComputationScreen())));
                   },
                   child: Text(
                     "GET STARTED",

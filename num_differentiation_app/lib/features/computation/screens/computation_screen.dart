@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:num_differentiation_app/app/constants/app_colors.dart';
+import 'package:num_differentiation_app/app/constants/app_strings.dart';
 import 'package:num_differentiation_app/app/shared/widgets/custom_dialog.dart';
 import 'package:num_differentiation_app/app/util/util_screen.dart';
+import 'package:num_differentiation_app/features/computation/models/difference_calculator.dart';
 
 class ComputationScreen extends StatefulWidget {
   const ComputationScreen({super.key});
@@ -20,6 +23,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
   double forwardDifference = 0;
   double backwardDifference = 0;
   double centralDifference = 0;
+  int decimalPlaces = 2;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -55,33 +59,37 @@ class _ComputationScreenState extends State<ComputationScreen> {
         ContextModel context = ContextModel();
         context.bindVariable(Variable('x'), Number(point));
 
-        forwardDifference =
-            computeForwardDifference(expression, point, stepSize);
-        backwardDifference =
-            computeBackwardDifference(expression, point, stepSize);
-        centralDifference =
-            computeCentralDifference(expression, point, stepSize);
+        forwardDifference = DifferenceCalculator()
+            .computeForwardDifference(expression, point, stepSize);
+
+        backwardDifference = DifferenceCalculator()
+            .computeBackwardDifference(expression, point, stepSize);
+        centralDifference = DifferenceCalculator()
+            .computeCentralDifference(expression, point, stepSize);
 
         result =
             'Forward difference: $forwardDifference\nBackward difference: $backwardDifference\nCentral difference: $centralDifference';
       });
-    } on FormatException catch (e) {
+    } on FormatException {
       showDialog(
           context: context,
           builder: (context) {
             return AlertDialog(
-              title: Text("Make sure the function is correct"),
-              content:
-                  Text("Example of valid expression : 2x^3 - 5x^2 + 3x + 1"),
+              title: Text(AppStrings().dialogTitleFunction),
+              content: Text(AppStrings().dialogDescriptionFunction),
               actions: [
                 ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
                     },
-                    child: Text("OK"))
+                    child: Text(AppStrings().ok))
               ],
             );
           });
+    } on RangeError {
+      Fluttertoast.showToast(
+          msg: "Double check the function value, make sure it's correct",
+          backgroundColor: Colors.red);
     }
   }
 
@@ -103,26 +111,24 @@ class _ComputationScreenState extends State<ComputationScreen> {
                       SizedBox(
                         width: UtilScreen().getWidth(context) * 0.08,
                       ),
-                      Container(
-                          child: SvgPicture.asset(
+                      SvgPicture.asset(
                         'assets/icon_logo.svg',
                         width: UtilScreen().getWidth(context) * 0.1,
-                      )),
-                      Spacer(),
+                      ),
+                      const Spacer(),
                       GestureDetector(
                         onTap: () {
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
-                              return MyDialog();
+                              return const MyDialog();
                             },
                           );
                         },
-                        child: Container(
-                            child: SvgPicture.asset(
+                        child: SvgPicture.asset(
                           'assets/question_icon.svg',
                           width: UtilScreen().getWidth(context) * 0.1,
-                        )),
+                        ),
                       ),
                       SizedBox(
                         width: UtilScreen().getWidth(context) * 0.08,
@@ -139,14 +145,14 @@ class _ComputationScreenState extends State<ComputationScreen> {
                     margin: EdgeInsets.only(
                         right: UtilScreen().getWidth(context) * 0.08),
                     alignment: Alignment.centerRight,
-                    child: Icon(
+                    child: const Icon(
                       Icons.refresh,
                       size: 35,
                     ),
                   ),
                 ),
                 Container(
-                    margin: EdgeInsets.symmetric(horizontal: 30),
+                    margin: const EdgeInsets.symmetric(horizontal: 30),
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Function",
@@ -156,26 +162,29 @@ class _ComputationScreenState extends State<ComputationScreen> {
                           .copyWith(fontSize: 18),
                     )),
                 Container(
-                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: TextFormField(
                     maxLength: 100,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Field cannot be empty';
                       }
+                      if (!value.contains('x')) {
+                        return 'Field must contain x variable';
+                      }
                       return null;
                     },
                     controller: functionController,
                     decoration: InputDecoration(
-                      counter: SizedBox.shrink(),
+                      counter: const SizedBox.shrink(),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.black,
                             width: 2.0,
                           )),
                       hintText: 'Enter text',
-                      contentPadding: EdgeInsets.all(10.0),
+                      contentPadding: const EdgeInsets.all(10.0),
                     ),
                   ),
                 ),
@@ -183,7 +192,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                   height: UtilScreen().getHeight(context) * 0.02,
                 ),
                 Container(
-                    margin: EdgeInsets.symmetric(horizontal: 30),
+                    margin: const EdgeInsets.symmetric(horizontal: 30),
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Value of X",
@@ -193,7 +202,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                           .copyWith(fontSize: 18),
                     )),
                 Container(
-                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20.0),
                     color: Colors.white,
@@ -212,15 +221,15 @@ class _ComputationScreenState extends State<ComputationScreen> {
                     },
                     controller: pointController,
                     decoration: InputDecoration(
-                      counter: SizedBox.shrink(),
+                      counter: const SizedBox.shrink(),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.black,
                             width: 2.0,
                           )),
                       hintText: 'Enter text',
-                      contentPadding: EdgeInsets.all(10.0),
+                      contentPadding: const EdgeInsets.all(10.0),
                     ),
                   ),
                 ),
@@ -228,7 +237,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                   height: UtilScreen().getHeight(context) * 0.02,
                 ),
                 Container(
-                    margin: EdgeInsets.symmetric(horizontal: 30),
+                    margin: const EdgeInsets.symmetric(horizontal: 30),
                     alignment: Alignment.centerLeft,
                     child: Text(
                       "Step Size (Interval)",
@@ -238,7 +247,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                           .copyWith(fontSize: 18),
                     )),
                 Container(
-                  margin: EdgeInsets.symmetric(horizontal: 20),
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
                   child: TextFormField(
                     maxLength: 100,
                     validator: (value) {
@@ -253,25 +262,25 @@ class _ComputationScreenState extends State<ComputationScreen> {
                     },
                     controller: stepSizeController,
                     decoration: InputDecoration(
-                      counter: SizedBox.shrink(),
+                      counter: const SizedBox.shrink(),
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: Colors.black,
                             width: 2.0,
                           )),
                       hintText: 'Enter text',
-                      contentPadding: EdgeInsets.all(10.0),
+                      contentPadding: const EdgeInsets.all(10.0),
                     ),
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Container(
                   width: UtilScreen().getWidth(context),
                   height: UtilScreen().getHeight(context) * 0.40,
                   decoration: BoxDecoration(
                       color: AppColors().appGreenTwo,
-                      borderRadius: BorderRadius.only(
+                      borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(44),
                           topRight: Radius.circular(44))),
                   child: Column(
@@ -280,8 +289,8 @@ class _ComputationScreenState extends State<ComputationScreen> {
                         height: UtilScreen().getHeight(context) * 0.02,
                       ),
                       Container(
-                        padding: EdgeInsets.all(10),
-                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
                         width: UtilScreen().getWidth(context),
                         height: 60,
                         decoration: BoxDecoration(
@@ -303,7 +312,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                                   .copyWith(fontSize: 18),
                             ),
                             Text(
-                              forwardDifference!.toStringAsFixed(2),
+                              forwardDifference.toStringAsFixed(decimalPlaces),
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge!
@@ -319,8 +328,8 @@ class _ComputationScreenState extends State<ComputationScreen> {
                         height: UtilScreen().getHeight(context) * 0.02,
                       ),
                       Container(
-                        padding: EdgeInsets.all(10),
-                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
                         width: UtilScreen().getWidth(context),
                         height: 60,
                         decoration: BoxDecoration(
@@ -342,7 +351,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                                   .copyWith(fontSize: 18),
                             ),
                             Text(
-                              centralDifference!.toStringAsFixed(2),
+                              centralDifference.toStringAsFixed(decimalPlaces),
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge!
@@ -355,8 +364,8 @@ class _ComputationScreenState extends State<ComputationScreen> {
                         height: UtilScreen().getHeight(context) * 0.02,
                       ),
                       Container(
-                        padding: EdgeInsets.all(10),
-                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.all(10),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
                         width: UtilScreen().getWidth(context),
                         height: 60,
                         decoration: BoxDecoration(
@@ -378,7 +387,7 @@ class _ComputationScreenState extends State<ComputationScreen> {
                                   .copyWith(fontSize: 18),
                             ),
                             Text(
-                              backwardDifference!.toStringAsFixed(2),
+                              backwardDifference.toStringAsFixed(decimalPlaces),
                               style: Theme.of(context)
                                   .textTheme
                                   .bodyLarge!
@@ -387,31 +396,52 @@ class _ComputationScreenState extends State<ComputationScreen> {
                           ],
                         ),
                       ),
-                      Spacer(),
-                      Container(
-                        margin: EdgeInsets.symmetric(horizontal: 20),
-                        height: 60,
-                        width: UtilScreen().getWidth(context),
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadiusDirectional.all(
-                                Radius.circular(10))),
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors().appDarkTwo),
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
-                                computeDerivatives();
-                                print("Working");
+                      const Spacer(),
+                      GestureDetector(
+                        onHorizontalDragUpdate: (DragUpdateDetails details) {
+                          setState(() {
+                            if (details.delta.dx > 0) {
+                              if (decimalPlaces == 8) {
+                                return;
+                              } else {
+                                decimalPlaces++;
                               }
-                            },
-                            child: Text(
-                              "COMPUTE",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineSmall!
-                                  .copyWith(color: Colors.white, fontSize: 20),
-                            )),
+                              // Increment the number when swiping right
+                            } else if (details.delta.dx < 0) {
+                              if (decimalPlaces == 0) {
+                                return;
+                              } else {
+                                decimalPlaces--;
+                              }
+                              // Decrement the number when swiping left
+                            }
+                          });
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 20),
+                          height: 60,
+                          width: UtilScreen().getWidth(context),
+                          decoration: const BoxDecoration(
+                              borderRadius: BorderRadiusDirectional.all(
+                                  Radius.circular(10))),
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors().appDarkTwo),
+                              onPressed: () {
+                                if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
+                                  computeDerivatives();
+                                }
+                              },
+                              child: Text(
+                                "COMPUTE",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall!
+                                    .copyWith(
+                                        color: Colors.white, fontSize: 20),
+                              )),
+                        ),
                       ),
                       SizedBox(
                         height: UtilScreen().getHeight(context) * 0.02,
@@ -426,45 +456,4 @@ class _ComputationScreenState extends State<ComputationScreen> {
       ),
     );
   }
-}
-
-double computeForwardDifference(Expression expression, double x, double h) {
-  ContextModel context = ContextModel();
-  context.bindVariable(Variable('x'), Number(x));
-
-  double f = expression.evaluate(EvaluationType.REAL, context);
-
-  context.bindVariable(Variable('x'), Number(x + h));
-  double fPlusH = expression.evaluate(EvaluationType.REAL, context);
-
-  double derivative = (fPlusH - f) / h;
-
-  return derivative;
-}
-
-double computeBackwardDifference(Expression expression, double x, double h) {
-  ContextModel context = ContextModel();
-  context.bindVariable(Variable('x'), Number(x));
-
-  double f = expression.evaluate(EvaluationType.REAL, context);
-
-  context.bindVariable(Variable('x'), Number(x - h));
-  double fMinusH = expression.evaluate(EvaluationType.REAL, context);
-
-  double derivative = (f - fMinusH) / h;
-
-  return derivative;
-}
-
-double computeCentralDifference(Expression expression, double x, double h) {
-  ContextModel context = ContextModel();
-  context.bindVariable(Variable('x'), Number(x - h));
-  double fMinusH = expression.evaluate(EvaluationType.REAL, context);
-
-  context.bindVariable(Variable('x'), Number(x + h));
-  double fPlusH = expression.evaluate(EvaluationType.REAL, context);
-
-  double derivative = (fPlusH - fMinusH) / (2 * h);
-
-  return derivative;
 }
